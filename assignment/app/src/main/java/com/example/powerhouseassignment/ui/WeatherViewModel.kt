@@ -18,25 +18,21 @@ import java.time.format.DateTimeFormatter
 class WeatherViewModel : ViewModel() {
 
   val todayWeatherLiveData = MutableLiveData<List<WeatherList>>()
-  val forecastWeatherLiveData = MutableLiveData<List<WeatherList>>()
-  val closetorexactlysameweatherdata = MutableLiveData<WeatherList?>()
+  val forecastLiveData = MutableLiveData<List<WeatherList>>()
+  val weatherLiveData = MutableLiveData<WeatherList?>()
   val cityName = MutableLiveData<String>()
   val context = MyApplication.instance
 
   @RequiresApi(Build.VERSION_CODES.O)
-  fun getWeather(city: String? = null) = viewModelScope.launch(Dispatchers.IO) {
+  fun getWeather(city: String? = null, lat: Double? = null, lon: Double? = null) = viewModelScope.launch(Dispatchers.IO) {
     val todayWeatherList = mutableListOf<WeatherList>()
     val currentDateTime = LocalDateTime.now()
     val currentDateO = currentDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-    val sharedPrefs = SharedPrefs.getInstance(context)
-    val lat = sharedPrefs.getValue("lat").toString()
-    val lon = sharedPrefs.getValue("lon").toString()
 
-    Log.e("ViewModel", "$lat $lon")
     val call = if (city != null) {
       RetrofitInstance.api.getWeatherByCity(city)
     } else {
-      RetrofitInstance.api.getCurrentWeather(lat, lon)
+      RetrofitInstance.api.getCurrentWeather(lat.toString(), lon.toString())
     }
     val response = call.execute()
 
@@ -52,7 +48,7 @@ class WeatherViewModel : ViewModel() {
         }
       }
       val closestWeather = findClosestWeather(todayWeatherList)
-      closetorexactlysameweatherdata.postValue(closestWeather)
+      weatherLiveData.postValue(closestWeather)
 
       todayWeatherLiveData.postValue(todayWeatherList)
 
@@ -90,11 +86,11 @@ class WeatherViewModel : ViewModel() {
         }
       }
 
-      forecastWeatherLiveData.postValue(forecastWeatherList)
+      forecastLiveData.postValue(forecastWeatherList)
 
 
 
-      Log.d("Forecast LiveData", forecastWeatherLiveData.value.toString())
+      Log.d("Forecast LiveData", forecastLiveData.value.toString())
     } else {
       val errorMessage = response.message()
       Log.e("CurrentWeatherError", "Error: $errorMessage")

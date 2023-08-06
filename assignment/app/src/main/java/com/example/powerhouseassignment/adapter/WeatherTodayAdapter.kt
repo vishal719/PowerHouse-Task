@@ -42,22 +42,22 @@ class WeatherToday : RecyclerView.Adapter<TodayHolder>() {
 
 
 
-
-    holder.timeDisplay.text = todayForeCast.dtTxt!!.substring(11, 16).toString()
+    holder.timeDisplay.text = todayForeCast.dtTxt!!.substring(11, 16)
     val temperatureFahrenheit = todayForeCast.main?.temp
     val temperatureCelsius = (temperatureFahrenheit?.minus(273.15))
     val temperatureFormatted = String.format("%.2f", temperatureCelsius)
 
 
     holder.tempDisplay.text = "$temperatureFormatted°"
-    holder.speedDisplay.text = "${todayForeCast.wind?.speed} km/h"
+    holder.speedDisplay.text = "${todayForeCast.wind?.speed} m/s"
 
     val calendar = Calendar.getInstance()
-// Define the desired format
+
+    // Define the desired format
     val dateFormat = SimpleDateFormat("HH::mm")
     val formattedTime = dateFormat.format(calendar.time)
     val timeofapi = todayForeCast.dtTxt!!.split(" ")
-    val partafterspace = timeofapi[1]
+    val partafterspace = timeofapi[0]
 
     Log.e("time", " formatted time:${formattedTime}, timeofapi: ${partafterspace}")
 
