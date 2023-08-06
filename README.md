@@ -12,6 +12,6 @@ Offline Support: The app ensures a smooth user experience even when there is no 
 
 Background Data Refresh: In addition to displaying cached data, the app performs background network calls to fetch the latest weather data. This ensures that users receive up-to-date weather information even if the app is running in the background.
 
-Screenshots:
+# Screenshots:
 <img src="https://github.com/vishal719/PowerHouse-Task/assets/73362847/8833481e-7f6b-43da-9fe5-40b3debd1b29" width="180" height="400">
 <img src="https://github.com/vishal719/PowerHouse-Task/assets/73362847/75eda992-42e6-4f6e-8d1b-4f202aa8e3bd" width="180" height="400"> 
