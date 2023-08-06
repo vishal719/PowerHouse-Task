@@ -5,8 +5,6 @@ import android.location.Location
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
-import android.view.KeyEvent
 import android.view.inputmethod.EditorInfo
 import android.widget.Toast
 import androidx.annotation.RequiresApi
@@ -18,7 +16,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.example.powerhouseassignment.adapter.WeatherToday
 import com.example.powerhouseassignment.databinding.ActivityMainBinding
+import com.example.powerhouseassignment.db.WeatherDatabase
+import com.example.powerhouseassignment.repository.WeatherRepository
 import com.example.powerhouseassignment.ui.WeatherViewModel
+import com.example.powerhouseassignment.ui.WeatherViewModelProviderFactory
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import java.text.SimpleDateFormat
@@ -27,7 +28,7 @@ import java.util.Locale
 class MainActivity : AppCompatActivity() {
 
   private lateinit var binding: ActivityMainBinding
-  lateinit var viM: WeatherViewModel
+  lateinit var viewModel: WeatherViewModel
   lateinit var adapter: WeatherToday
   private lateinit var fusedLocationClient: FusedLocationProviderClient
 
@@ -35,29 +36,31 @@ class MainActivity : AppCompatActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
-    viM = ViewModelProvider(this).get(WeatherViewModel::class.java)
-    adapter = WeatherToday()
+
+    val newsRepository = WeatherRepository(WeatherDatabase(this))
+    val viewModelProviderFactory = WeatherViewModelProviderFactory(application, newsRepository)
     val llayout: LinearLayoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+
+    viewModel = ViewModelProvider(this, viewModelProviderFactory).get(WeatherViewModel::class.java)
+    adapter = WeatherToday()
     binding.recyclerView.layoutManager = llayout
     fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
     binding.searchCity.setOnEditorActionListener { _, actionId, _ ->
-      Log.d("Debug", "Action ID: $actionId")
       if (actionId == EditorInfo.IME_ACTION_DONE) {
         val enteredText = binding.searchCity.text.toString()
-        viM.getWeather(enteredText)
-        Toast.makeText(baseContext, "$enteredText", Toast.LENGTH_SHORT).show()
+        viewModel.getWeather(enteredText)
         true
       } else {
         false
       }
     }
 
-    viM.cityName.observe(this, Observer{
+    viewModel.cityName.observe(this, Observer{
       binding.layoutWeather.weatherCity.text = it.toString()
     })
 
-    viM.weatherLiveData.observe(this, Observer {
+    viewModel.weatherLiveData.observe(this, Observer {
       val temperatureFahrenheit = it!!.main?.temp
       val temperatureCelsius = (temperatureFahrenheit?.minus(273.15))
       val temperatureFormatted = String.format("%.2f", temperatureCelsius)
@@ -179,15 +182,20 @@ class MainActivity : AppCompatActivity() {
       }
     })
 
-    viM.todayWeatherLiveData.observe(this, Observer {
+    viewModel.todayWeatherLiveData.observe(this, Observer {
       val setNewlist = it as List<WeatherList>
       adapter.setList(setNewlist)
       binding.recyclerView.adapter = adapter
     })
 
+    viewModel.showToast.observe(this, Observer{
+      if (it){
+        Toast.makeText(this,"Please turn on the internet", Toast.LENGTH_SHORT).show()
+      }
+    })
+
     getLastKnownLocation()
 
-// Check for permission
   }
 
 
@@ -205,9 +213,7 @@ class MainActivity : AppCompatActivity() {
             val latitude = location.latitude
             val longitude = location.longitude
             // Use latitude and longitude
-            Toast.makeText(this, "Latitude: $latitude, Longitude: $longitude", Toast.LENGTH_SHORT)
-              .show()
-            viM.getWeather(lat = latitude, lon = longitude)
+            viewModel.getWeather(lat = latitude, lon = longitude)
           }
         }
 
