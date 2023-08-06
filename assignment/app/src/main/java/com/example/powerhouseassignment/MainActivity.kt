@@ -5,6 +5,7 @@ import android.location.Location
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.Toast
 import androidx.annotation.RequiresApi
@@ -36,10 +37,10 @@ class MainActivity : AppCompatActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
-
     val newsRepository = WeatherRepository(WeatherDatabase(this))
     val viewModelProviderFactory = WeatherViewModelProviderFactory(application, newsRepository)
-    val llayout: LinearLayoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+    val llayout: LinearLayoutManager =
+      LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
 
     viewModel = ViewModelProvider(this, viewModelProviderFactory).get(WeatherViewModel::class.java)
     adapter = WeatherToday()
@@ -56,11 +57,12 @@ class MainActivity : AppCompatActivity() {
       }
     }
 
-    viewModel.cityName.observe(this, Observer{
+    viewModel.cityName.observe(this, Observer {
       binding.layoutWeather.weatherCity.text = it.toString()
     })
 
     viewModel.weatherLiveData.observe(this, Observer {
+      binding.parentView.visibility = View.VISIBLE
       val temperatureFahrenheit = it!!.main?.temp
       val temperatureCelsius = (temperatureFahrenheit?.minus(273.15))
       val temperatureFormatted = String.format("%.2f", temperatureCelsius)
@@ -76,8 +78,8 @@ class MainActivity : AppCompatActivity() {
 
 
       binding.layoutWeather.weatherHumidity.text = "${it.main!!.humidity.toString()} %"
-      binding.layoutWeather.weatherWind.text = "${ it.wind?.speed.toString() } m/s"
-      binding.layoutWeather.weatherRain.text = "${ it.clouds?.all.toString() } mm"
+      binding.layoutWeather.weatherWind.text = "${it.wind?.speed.toString()} m/s"
+      binding.layoutWeather.weatherRain.text = "${it.clouds?.all.toString()} mm"
       val inputFormat = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
       val date = inputFormat.parse(it.dtTxt!!)
       val outputFormat = SimpleDateFormat("d MMMM EEEE,  HH:mm", Locale.getDefault())
@@ -188,16 +190,15 @@ class MainActivity : AppCompatActivity() {
       binding.recyclerView.adapter = adapter
     })
 
-    viewModel.showToast.observe(this, Observer{
-      if (it){
-        Toast.makeText(this,"Please turn on the internet", Toast.LENGTH_SHORT).show()
+    viewModel.showToast.observe(this, Observer {
+      if (it) {
+        Toast.makeText(this, "Please turn on the internet", Toast.LENGTH_SHORT).show()
       }
     })
 
     getLastKnownLocation()
 
   }
-
 
   @RequiresApi(Build.VERSION_CODES.O)
   private fun getLastKnownLocation() {
@@ -226,6 +227,7 @@ class MainActivity : AppCompatActivity() {
       )
     }
   }
+
   override fun onRequestPermissionsResult(
     requestCode: Int,
     permissions: Array<String>,
@@ -243,6 +245,7 @@ class MainActivity : AppCompatActivity() {
   }
 
   companion object {
+
     private const val REQUEST_LOCATION_PERMISSION = 1001
   }
 

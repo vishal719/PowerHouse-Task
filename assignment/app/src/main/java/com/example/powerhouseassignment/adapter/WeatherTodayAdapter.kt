@@ -40,7 +40,11 @@ class WeatherToday : RecyclerView.Adapter<TodayHolder>() {
   override fun onBindViewHolder(holder: TodayHolder, position: Int) {
     val todayForeCast = listOfTodayWeather[position]
 
-
+    if(position > 0){
+      if (todayForeCast.wind?.speed?: 0.0 < listOfTodayWeather[position-1]?.wind?.speed?:0.0){
+        holder.speedIndicator.rotation = 145F
+      }
+    }
 
     holder.timeDisplay.text = todayForeCast.dtTxt!!.substring(11, 16)
     val temperatureFahrenheit = todayForeCast.main?.temp
@@ -174,6 +178,7 @@ class TodayHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
   val tempDisplay: TextView = itemView.findViewById(R.id.weather_temppp)
   val timeDisplay: TextView = itemView.findViewById(R.id.weather_time)
   val speedDisplay: TextView = itemView.findViewById(R.id.weather_speed)
+  val speedIndicator: ImageView = itemView.findViewById(R.id.speed_indicator)
 
 }
 

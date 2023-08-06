@@ -81,22 +81,25 @@ class WeatherViewModel(app: Application, val weatherRepository: WeatherRepositor
 
   fun getCachedWeather() = viewModelScope.launch(Dispatchers.IO) {
     val forecast: List<ForeCast> = weatherRepository.getCachedWeather()
-    val weatherList = forecast[forecast.size-1].weatherList
-    val todayWeatherList = mutableListOf<WeatherList>()
-    val currentDateTime = LocalDateTime.now()
-    val currentDateO = currentDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-    cityName.postValue(forecast[forecast.size-1].city!!.name)
-    val currentDate = currentDateO
+    if (forecast.isNotEmpty()){
 
-    weatherList?.forEach { weather ->
-      if (weather.dtTxt!!.split("\\s".toRegex()).contains(currentDate)) {
-        todayWeatherList.add(weather)
+      val weatherList = forecast[forecast.size-1].weatherList
+      val todayWeatherList = mutableListOf<WeatherList>()
+      val currentDateTime = LocalDateTime.now()
+      val currentDateO = currentDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+      cityName.postValue(forecast[forecast.size-1].city!!.name)
+      val currentDate = currentDateO
+
+      weatherList?.forEach { weather ->
+        if (weather.dtTxt!!.split("\\s".toRegex()).contains(currentDate)) {
+          todayWeatherList.add(weather)
+        }
       }
-    }
-    val closestWeather = findClosestWeather(todayWeatherList)
-    weatherLiveData.postValue(closestWeather)
+      val closestWeather = findClosestWeather(todayWeatherList)
+      weatherLiveData.postValue(closestWeather)
 
-    todayWeatherLiveData.postValue(todayWeatherList)
+      todayWeatherLiveData.postValue(todayWeatherList)
+    }
   }
 
   fun cacheWeather(list: ForeCast) = viewModelScope.launch {
